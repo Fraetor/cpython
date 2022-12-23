@@ -701,7 +701,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         """
         path = self.translate_path(self.path)
         f = None
-        if os.path.isdir(path):
+        # Special case for URLs with default extension.
+        extension_changed = False
+        if os.path.splitext(path)[1] == "":
+            if not os.path.isfile(path):
+                for extension in self.default_extensions:
+                    if os.path.isfile(path + extension):
+                        path += extension
+                        extension_changed = True
+                        break
+        if os.path.isdir(path) and not extension_changed:
             parts = urllib.parse.urlsplit(self.path)
             if not parts.path.endswith('/'):
                 # redirect browser - doing basically what apache does
@@ -728,13 +737,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         if path.endswith("/"):
             self.send_error(HTTPStatus.NOT_FOUND, "File not found")
             return None
-        # Special case for URLs with default extension.
-        if os.path.splitext(path)[1] == "":
-            if not os.path.exists(path):
-                for extension in self.default_extensions:
-                    if os.path.exists(path + extension):
-                        path += extension
-                        break
         ctype = self.guess_type(path)
         try:
             f = open(path, 'rb')
