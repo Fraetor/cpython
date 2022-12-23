@@ -1,0 +1,7 @@
+Handle URLs without file extensions in the http.server module. Where an
+exact match is not found, the server will try serving the same file with the
+.html or .htm extension.
+
+This better matches the behaviour of most other web servers, and is useful
+for making relative links work when using http.server as a test server for
+web development.
